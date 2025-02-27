@@ -1,0 +1,22 @@
+[world]
+day = 1000
+
+[world.init]
+food = 20
+population = 5
+
+[creature]
+stamina = 2000
+
+[creature.size]
+    init = 12 # Value for the primal creatures
+    variations = [-1,0,+1] # Possible mutation values
+    probabilities = [0.25,0.5,0.25] # Probability of each value
+
+[creature.speed]
+    init = 3 # Value for the primal creatures
+    variations = [-1,0,+1] # Possible mutation values
+    probabilities = [0.25,0.5,0.25] # Probability of each value
+
+[simulation]
+generations = 50

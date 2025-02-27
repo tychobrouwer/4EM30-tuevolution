@@ -1,0 +1,14 @@
+[world]
+day = 1000
+
+[world.init]
+food = 20
+population = 5
+
+[creature]
+size = 12
+speed = 3
+stamina = 2000
+
+[simulation]
+generations = 50
