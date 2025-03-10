@@ -1,11 +1,14 @@
 import pygame
 import enum
-import numpy, numpy.random, numpy.linalg
+import numpy
+import numpy.random
+import numpy.linalg
 import TUEvolution.utils as utils
 
 # Random walk parameters
-walk_distance = 40 # Average distance between destinations
-walk_turn = 4 # Variability in orientation (0 is completely random, ∞ is completely fixed)
+walk_distance = 40  # Average distance between destinations
+walk_turn = 4  # Variability in orientation (0 is completely random, ∞ is completely fixed)
+
 
 # Power function
 def power(radius, speed):
@@ -18,13 +21,15 @@ def power(radius, speed):
 
     Returns:
     int: The power consumption.
-    """    
+    """
     return (radius**3)*speed**2
+
 
 # Energy consumption of smallest creature per step
 unit_speed = 1
 unit_time = walk_distance//unit_speed
 unit_energy = unit_time*power(radius=2, speed=1)
+
 
 # Creature status enumeration
 class Status(enum.Enum):
@@ -33,9 +38,10 @@ class Status(enum.Enum):
     HOME = "home"
     PERISHED = "perished"
 
+
 # Creature class
 class Creature:
-    def __init__(self, radius, speed, stamina, color):
+    def __init__(self, size_evo_data, speed_evo_data, stamina, color):
         """
         Initialize a Creature object.
 
@@ -45,8 +51,11 @@ class Creature:
         stamina (int): The stamina of the creature.
         color (tuple): The RGB color of the creature.
         """
-        self.radius = max(radius,2)
-        self.speed = max(speed,1)
+
+        self.radius = max(size_evo_data["init"] // 2, 2)
+        self.size_evo_data = size_evo_data
+        self.speed = max(speed_evo_data["init"], 1)
+        self.speed_evo_data = speed_evo_data
         self.power = power(self.radius, self.speed)
         self.stamina = stamina
         self.energy = stamina*unit_energy
@@ -85,9 +94,9 @@ class Creature:
         """
         range = self.speed*self.energy/self.power
         max_distance = world.radius+world.homes_width//2
-        if range>max_distance:
+        if range > max_distance:
             return False
-        return max_distance-numpy.linalg.norm(self.position-world.center)>range
+        return max_distance-numpy.linalg.norm(self.position-world.center) > range
 
     def call_home(self, world):
         """
@@ -99,7 +108,7 @@ class Creature:
         r = world.radius-world.homes_width//2
         p = self.position-world.center
         self.destination = world.center+r/numpy.linalg.norm(p)*p
-        self.orientation = numpy.arctan2(*numpy.flip(numpy.array(self.destination)-numpy.array(self.position)))
+        self.orientation = numpy.arctan2(*numpy.flip(numpy.array(self.destination) - numpy.array(self.position)))
         self.status = Status.RETURNING
 
     def update_destination(self, reorient=True):
@@ -121,7 +130,7 @@ class Creature:
         Returns:
         bool: True if the creature is exploring, False otherwise.
         """
-        return self.status==Status.EXPLORING
+        return self.status == Status.EXPLORING
 
     def is_home(self):
         """
@@ -130,7 +139,7 @@ class Creature:
         Returns:
         bool: True if the creature is home, False otherwise.
         """
-        return self.status==Status.HOME
+        return self.status == Status.HOME
 
     def perish(self):
         """
@@ -145,8 +154,8 @@ class Creature:
         Returns:
         bool: True if the creature has perished, False otherwise.
         """
-        return self.status==Status.PERISHED
-    
+        return self.status == Status.PERISHED
+
     def is_alive(self):
         """
         Check if the creature is alive.
@@ -163,7 +172,7 @@ class Creature:
         Returns:
         bool: True if the creature is hungry, False otherwise.
         """
-        return self.food<2
+        return self.food < 2
 
     def reincarnate(self):
         """
@@ -172,7 +181,7 @@ class Creature:
         Returns:
         Creature: A new creature with the same attributes.
         """
-        return Creature(self.radius, self.speed, self.stamina, self.color)
+        return Creature(self.size_evo_data, self.speed_evo_data, self.stamina, self.color)
 
     def reproduce(self):
         """
@@ -181,10 +190,20 @@ class Creature:
         Returns:
         Creature: A new creature with slightly varied attributes.
         """
-        Δradius = 0
-        Δspeed = 0
-        
-        return Creature(self.radius+Δradius, (self.speed+Δspeed), self.stamina, self.color)
+
+        Δsize = numpy.random.choice(self.size_evo_data["variations"], p=self.size_evo_data["probabilities"])
+        Δspeed = numpy.random.choice(self.speed_evo_data["variations"], p=self.speed_evo_data["probabilities"])
+
+        size_evo_data = {}
+        size_evo_data["init"] = self.size_evo_data["init"] + Δsize
+        size_evo_data["variations"] = self.size_evo_data["variations"]
+        size_evo_data["probabilities"] = self.size_evo_data["probabilities"]
+        speed_evo_data = {}
+        speed_evo_data["init"] = self.speed_evo_data["init"] + Δsize
+        speed_evo_data["variations"] = self.speed_evo_data["variations"]
+        speed_evo_data["probabilities"] = self.speed_evo_data["probabilities"]
+
+        return Creature(size_evo_data, speed_evo_data, self.stamina, self.color)
 
     def move(self, step=None):
         """
@@ -198,18 +217,22 @@ class Creature:
         direction = self.destination-self.position
         distance = numpy.linalg.norm(direction)
 
-        step = self.step if step==None else step
+        step = self.step if step is None else step
 
-        if distance<=step: # Reached destination
+        if distance <= step:  # Reached destination
             self.energy -= self.power*(distance/self.speed)
             self.position = self.destination.copy()
-            if self.status==Status.EXPLORING:
+
+            if self.status == Status.EXPLORING:
                 self.update_destination()
-                if distance<step: # Remainder of step
+
+                if distance < step:  # Remainder of step
                     self.move(step-distance)
-            elif self.status==Status.RETURNING:
+
+            elif self.status == Status.RETURNING:
                 self.status = Status.HOME
-        else: # Not reached destination
+
+        else:  # Not reached destination
             self.energy -= self.power*(step/self.speed)
             direction = direction.astype(float)/distance
             self.position += numpy.round(step*direction).astype(int)
@@ -222,6 +245,7 @@ class Creature:
         screen (pygame.Surface): The screen to draw on.
         """
         pygame.draw.circle(screen, self.color, self.position, self.radius)
-        charge = max(self.energy/(self.stamina*unit_energy),0)
-        fill_color = (charge*numpy.array(self.color)+(1-charge)*numpy.array(utils.color('white'))).astype(int)
+        charge = max(self.energy/(self.stamina * unit_energy), 0)
+        fill_color = (charge * numpy.array(self.color) + (1-charge) * numpy.array(utils.color('white'))).astype(int)
         pygame.draw.circle(screen, fill_color, self.position, self.radius-1)
+

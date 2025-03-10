@@ -1,4 +1,7 @@
-import pygame, numpy, TUEvolution.utils as utils
+import pygame
+import numpy
+import TUEvolution.utils as utils
+
 
 class Cycler:
     """
@@ -39,19 +42,19 @@ class Cycler:
         self.active = -1 if len(graphs)==0 else 0
         self.bullet_radius = font_size//3
         bullets_width = font_size*len(graphs)
-        self.bullet_centers = [numpy.array([self.left+(self.width-bullets_width)//2+i*font_size+font_size//2,self.top+self.height-self.border//2]) for i in range(len(graphs))]
+        self.bullet_centers = [numpy.array([self.left + (self.width-bullets_width) // 2 + i * font_size + font_size // 2,self.top+self.height-self.border//2]) for i in range(len(graphs))]
 
     def next(self):
         """
         Cycle to the next graph.
         """
-        self.active = (self.active+1)%len(self.graphs)
+        self.active = (self.active+1) % len(self.graphs)
 
     def previous(self):
         """
         Cycle to the previous graph.
         """
-        self.active = (self.active-1)%len(self.graphs)
+        self.active = (self.active-1) % len(self.graphs)
 
     def get_hovered(self):
         """
@@ -62,7 +65,7 @@ class Cycler:
         """
         mouse_position = numpy.array(pygame.mouse.get_pos())
         for bullet_number, bullet_center in enumerate(self.bullet_centers):
-            if sum((mouse_position-bullet_center)**2)<(self.bullet_radius)**2:
+            if sum((mouse_position-bullet_center)**2) < (self.bullet_radius)**2:
                 return bullet_number
         return -1
 
@@ -84,11 +87,12 @@ class Cycler:
         self.graphs[self.active].draw(screen)
 
         # tab icon
-        if len(self.bullet_centers)>0:
-            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0]-self.bullet_radius*numpy.array([5,0]), self.bullet_centers[0]-self.bullet_radius*numpy.array([3,0]), 1)
-            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0]-self.bullet_radius*numpy.array([3,1]), self.bullet_centers[0]-self.bullet_radius*numpy.array([3,-1]), 1)
-            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0]-self.bullet_radius*numpy.array([3,0]), self.bullet_centers[0]-self.bullet_radius*numpy.array([4,1]), 1)
-            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0]-self.bullet_radius*numpy.array([3,0]), self.bullet_centers[0]-self.bullet_radius*numpy.array([4,-1]), 1)
+        if len(self.bullet_centers) > 0:
+            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius*numpy.array([5, 0]), self.bullet_centers[0] - self.bullet_radius * numpy.array([3, 0]), 1)
+            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius*numpy.array([3, 1]), self.bullet_centers[0] - self.bullet_radius*numpy.array([3, -1]), 1)
+            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius*numpy.array([3, 0]), self.bullet_centers[0] - self.bullet_radius*numpy.array([4, 1]), 1)
+            pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius*numpy.array([3, 0]), self.bullet_centers[0] - self.bullet_radius*numpy.array([4, -1]), 1)
+
 
 class XY:
     """

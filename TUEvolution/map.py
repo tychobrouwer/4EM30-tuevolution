@@ -29,8 +29,8 @@ class World:
         Returns:
         bool: True if it is the end of the day, False otherwise.
         """
-        return self.time==self.day
-    
+        return self.time == self.day
+
     def next_day(self):
         """
         Reset the time to the start of the next day.
@@ -51,10 +51,10 @@ class World:
         creatures (list): A list of Creature objects.
         """
         for c in range(len(creatures)):
-            θ = 2*numpy.pi*c/len(creatures)
-            r = self.radius-self.homes_width//2
-            position = numpy.round(self.center+r*numpy.array([numpy.cos(θ),numpy.sin(θ)])).astype(int)
-            creatures[c].set_state(position, θ+numpy.pi)
+            θ = 2 * numpy.pi * c / len(creatures)
+            r = self.radius - self.homes_width // 2
+            position = numpy.round(self.center + r * numpy.array([numpy.cos(θ), numpy.sin(θ)])).astype(int)
+            creatures[c].set_state(position, θ + numpy.pi)
 
     def get_food_locations(self, n_food):
         """

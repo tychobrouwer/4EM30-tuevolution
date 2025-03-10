@@ -7,10 +7,12 @@ import os
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
- 
-import TUEvolution.utils as utils, TUEvolution.graphs as graphs
+
+import TUEvolution.utils as utils
+import TUEvolution.graphs as graphs
 from TUEvolution.map import World, Food
 from TUEvolution.creatures import Creature
+
 
 class App:
     """
@@ -52,12 +54,28 @@ class App:
         self.food_radius = 4
 
         # Creature
-        self.creature_radius = creature_size//2
-        self.creature_speed = creature_speed
+        if isinstance(creature_size, int):
+            self.creature_size = {}
+            self.creature_size["init"] = creature_size
+            self.creature_size["variations"] = [0]
+            self.creature_size["probabilities"] = [1]
+
+        elif isinstance(creature_size, object):
+            self.creature_size = creature_size
+
+        if isinstance(creature_speed, int):
+            self.creature_speed = {}
+            self.creature_speed["init"] = creature_speed
+            self.creature_speed["variations"] = [0]
+            self.creature_speed["probabilities"] = [1]
+
+        elif isinstance(creature_speed, object):
+            self.creature_speed = creature_speed
+
         self.creature_stamina = creature_stamina
 
         # Frame rate
-        self.fps = 30
+        self.fps = 400
 
         # Simulation
         self.population = population
@@ -76,12 +94,12 @@ class App:
         # World
         self.world = World(center=(self.sim_width//2,)*2,
                            radius=self.sim_width//2-self.border,
-                           homes_width=4*self.creature_radius,
+                           homes_width=4*self.creature_size["init"],
                            day=self.world_day)
 
         # Population
         self.generation = 0
-        self.creatures = [Creature(self.creature_radius, self.creature_speed, self.creature_stamina, utils.color('red')) for _ in range(self.population)]
+        self.creatures = [Creature(self.creature_size, self.creature_speed, self.creature_stamina, utils.color('red')) for _ in range(self.population)]
         self.world.assign_homes(self.creatures)
 
         # Food
@@ -99,7 +117,7 @@ class App:
                                           yticks=self.generations,
                                           linecolor=utils.color('red'),
                                           fontsize=self.font_size)
-        self.population_graph.add((self.generation,len(self.creatures)))
+        self.population_graph.add((self.generation, len(self.creatures)))
 
         self.food_graph = graphs.XY(xlabel='Generations',
                                     ylabel='Food',
@@ -107,7 +125,7 @@ class App:
                                     yticks=self.generations,
                                     linecolor=utils.color('forestgreen'),
                                     fontsize=self.font_size)
-        self.food_graph.add((self.generation,len(self.food)))
+        self.food_graph.add((self.generation, len(self.food)))
 
         self.graphs = graphs.Cycler(left=self.sim_width,
                                     top=0,
@@ -142,15 +160,16 @@ class App:
             if event.type == pygame.QUIT:
                 self._running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_TAB: # Cycle through the graphs
+                if event.key == pygame.K_TAB:  # Cycle through the graphs
                     if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]:
                         self.graphs.previous()
                     else:
                         self.graphs.next()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if self.graphs.get_hovered()!=-1: # Activate the graph corresponding to the clicked bullet
+                    if self.graphs.get_hovered() != -1:  # Activate the graph corresponding to the clicked bullet
                         self.graphs.active = self.graphs.get_hovered()
+
 
     def update(self):
         """
@@ -168,16 +187,17 @@ class App:
             if creature.is_home() or creature.has_perished():
                 continue
 
-            if creature.energy<0:
+            if creature.energy < 0:
                 creature.perish()
                 continue
 
             # Collect food until two food has been collected
-            for f in range(len(self.food)-1,-1,-1):
+            for f in range(len(self.food)-1, -1, -1):
                 food = self.food[f]
-                if(creature.is_hungry() and
-                   sum((food.position-creature.position)**2)<=(creature.radius+food.radius)**2):
-                    creature.food+=1
+
+                if (creature.is_hungry()
+                        and sum((food.position-creature.position)**2) <= (creature.radius + food.radius)**2):
+                    creature.food += 1
                     self.food.pop(f)
 
             # Eat other creature
@@ -185,17 +205,17 @@ class App:
                 if not creature.is_hungry():
                     break
 
-                if creature.radius<1.2*prey.radius:
+                if creature.radius < 1.2 * prey.radius:
                     continue
 
-                if( prey.is_alive() and 
-                    sum(prey.position-creature.position)**2<=(creature.radius+prey.radius)**2):
-                    creature.food+=1
+                if (prey.is_alive() and
+                        sum(prey.position-creature.position)**2 <= (creature.radius + prey.radius)**2):
+                    creature.food += 1
                     prey.perish()
 
             # Check whether to go home
             if creature.is_exploring():
-                if (creature.food==2 or (creature.food==1 and creature.home_out_of_reach(self.world))):
+                if (creature.food == 2 or (creature.food == 1 and creature.home_out_of_reach(self.world))):
                     creature.call_home(self.world)
 
             # Move away from the edge of the world
@@ -205,21 +225,24 @@ class App:
                 creature.update_destination(reorient=False)
 
         # End of day/generation check
-        if (self.world.end_of_day() or 
+        if (self.world.end_of_day() or
             all((creature.is_home() or creature.has_perished()) for creature in self.creatures)):
-            
+
             self.world.next_day()
             self.creatures = [creature for creature in self.creatures if creature.is_home()]
 
             # Next generation
-            if self.generation<self.generations:
+            if self.generation < self.generations:
 
                 self.generation += 1
                 next_generation = []
+
                 for creature in self.creatures:
                     next_generation.append(creature.reincarnate())
-                    if creature.food==2:
+
+                    if creature.food == 2:
                         next_generation.append(creature.reproduce())
+
                 self.creatures = next_generation
 
                 self.population=len(self.creatures)
@@ -230,8 +253,8 @@ class App:
                     self.food.append(Food(position, self.food_radius, utils.color('forestgreen')))
 
                 # Update graphs
-                self.population_graph.add((self.generation,len(self.creatures)))
-                self.food_graph.add((self.generation,len(self.food)))
+                self.population_graph.add((self.generation, len(self.creatures)))
+                self.food_graph.add((self.generation, len(self.food)))
 
     def render(self):
         """
@@ -264,6 +287,7 @@ class App:
         """
         pygame.quit()
 
+
 if __name__ == "__main__":
 
     # Specify the scenario
@@ -281,6 +305,7 @@ if __name__ == "__main__":
               creature_size=scenario['creature']['size'],
               creature_speed=scenario['creature']['speed'],
               creature_stamina=scenario['creature']['stamina'])
-    
+
     # Run the simulation
     app.execute()
+
