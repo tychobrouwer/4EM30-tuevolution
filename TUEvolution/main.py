@@ -46,7 +46,7 @@ class App:
         self.graph_width = 600
         self.graph_height = 600
         self.font_size = 16
-        self.size = (self.sim_width+self.graph_width, self.sim_height)
+        self.size = (self.sim_width + self.graph_width, self.sim_height)
 
         # World
         self.world_day = world_day
@@ -92,9 +92,9 @@ class App:
         pygame.display.set_caption(self.name)
 
         # World
-        self.world = World(center=(self.sim_width//2,)*2,
-                           radius=self.sim_width//2-self.border,
-                           homes_width=4*self.creature_size["init"],
+        self.world = World(center=(self.sim_width // 2,) * 2,
+                           radius=self.sim_width // 2 - self.border,
+                           homes_width=4 * self.creature_size["init"],
                            day=self.world_day)
 
         # Population
@@ -113,7 +113,7 @@ class App:
         # Graphs
         self.population_graph = graphs.XY(xlabel='Generations',
                                           ylabel='Population',
-                                          xticks=numpy.arange(self.generations+1),
+                                          xticks=numpy.arange(self.generations + 1),
                                           yticks=self.generations,
                                           linecolor=utils.color('red'),
                                           fontsize=self.font_size)
@@ -121,7 +121,7 @@ class App:
 
         self.food_graph = graphs.XY(xlabel='Generations',
                                     ylabel='Food',
-                                    xticks=numpy.arange(self.generations+1),
+                                    xticks=numpy.arange(self.generations + 1),
                                     yticks=self.generations,
                                     linecolor=utils.color('forestgreen'),
                                     fontsize=self.font_size)
@@ -170,7 +170,6 @@ class App:
                     if self.graphs.get_hovered() != -1:  # Activate the graph corresponding to the clicked bullet
                         self.graphs.active = self.graphs.get_hovered()
 
-
     def update(self):
         """
         Update the state of the simulation.
@@ -192,11 +191,10 @@ class App:
                 continue
 
             # Collect food until two food has been collected
-            for f in range(len(self.food)-1, -1, -1):
+            for f in range(len(self.food) - 1, -1, -1):
                 food = self.food[f]
 
-                if (creature.is_hungry()
-                        and sum((food.position-creature.position)**2) <= (creature.radius + food.radius)**2):
+                if (creature.is_hungry() and sum((food.position - creature.position)**2) <= (creature.radius + food.radius)**2):
                     creature.food += 1
                     self.food.pop(f)
 
@@ -208,8 +206,7 @@ class App:
                 if creature.radius < 1.2 * prey.radius:
                     continue
 
-                if (prey.is_alive() and
-                        sum(prey.position-creature.position)**2 <= (creature.radius + prey.radius)**2):
+                if (prey.is_alive() and sum(prey.position - creature.position)**2 <= (creature.radius + prey.radius)**2):
                     creature.food += 1
                     prey.perish()
 
@@ -220,13 +217,12 @@ class App:
 
             # Move away from the edge of the world
             if self.world.touches_edge(creature):
-                orientation = numpy.arctan2(*numpy.flip(numpy.array(self.world.center)-numpy.array(creature.position)))
+                orientation = numpy.arctan2(*numpy.flip(numpy.array(self.world.center) - numpy.array(creature.position)))
                 creature.set_state(creature.position, orientation)
                 creature.update_destination(reorient=False)
 
         # End of day/generation check
-        if (self.world.end_of_day() or
-            all((creature.is_home() or creature.has_perished()) for creature in self.creatures)):
+        if (self.world.end_of_day() or all((creature.is_home() or creature.has_perished()) for creature in self.creatures)):
 
             self.world.next_day()
             self.creatures = [creature for creature in self.creatures if creature.is_home()]
@@ -245,7 +241,7 @@ class App:
 
                 self.creatures = next_generation
 
-                self.population=len(self.creatures)
+                self.population = len(self.creatures)
                 self.world.assign_homes(self.creatures)
 
                 # Add food
@@ -308,4 +304,3 @@ if __name__ == "__main__":
 
     # Run the simulation
     app.execute()
-

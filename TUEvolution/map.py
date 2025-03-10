@@ -1,5 +1,8 @@
-import pygame, numpy, numpy.random
+import pygame
+import numpy
+import numpy.random
 import TUEvolution.utils as utils
+
 
 class World:
     """
@@ -66,9 +69,9 @@ class World:
         Returns:
         list: A list of food locations as numpy arrays.
         """
-        θs = 2*numpy.pi*numpy.random.rand(n_food)
-        rs = (self.radius-self.homes_width)*numpy.sqrt(numpy.random.rand(n_food))
-        return [numpy.round(self.center+r*numpy.array([numpy.cos(θ),numpy.sin(θ)])).astype(int) for θ, r in zip(θs,rs)]
+        θs = 2 * numpy.pi * numpy.random.rand(n_food)
+        rs = (self.radius - self.homes_width) * numpy.sqrt(numpy.random.rand(n_food))
+        return [numpy.round(self.center + r * numpy.array([numpy.cos(θ), numpy.sin(θ)])).astype(int) for θ, r in zip(θs, rs)]
 
     def touches_edge(self, creature):
         """
@@ -80,7 +83,7 @@ class World:
         Returns:
         bool: True if the creature touches the edge, False otherwise.
         """
-        return sum((creature.position-self.center)**2)>(self.radius-creature.radius)**2
+        return sum((creature.position - self.center)**2) > (self.radius - creature.radius)**2
 
     def draw(self, screen):
         """
@@ -91,14 +94,15 @@ class World:
         """
         pygame.draw.circle(screen, utils.color('dimgray'), self.center, self.radius)
 
-        r_inner = self.radius-self.homes_width//3
-        r_outer = self.radius-2*(self.homes_width//3)
-        for fraction in numpy.arange(60)/60:
-            if fraction > self.time/self.day:
+        r_inner = self.radius - self.homes_width // 3
+        r_outer = self.radius - 2 * (self.homes_width // 3)
+        for fraction in numpy.arange(60) / 60:
+            if fraction > self.time / self.day:
                 continue
-            dial = utils.orientation_vector((-0.5+2*fraction)*numpy.pi)
-            pygame.draw.line(screen, utils.color('lightgray'), self.center+r_inner*dial, self.center+r_outer*dial, 2)
-        pygame.draw.circle(screen, utils.color('lightgray'), self.center, self.radius-self.homes_width)
+            dial = utils.orientation_vector((-0.5 + 2 * fraction) * numpy.pi)
+            pygame.draw.line(screen, utils.color('lightgray'), self.center + r_inner * dial, self.center + r_outer * dial, 2)
+        pygame.draw.circle(screen, utils.color('lightgray'), self.center, self.radius - self.homes_width)
+
 
 class Food:
     """
@@ -121,7 +125,7 @@ class Food:
         color (tuple): The RGB color of the food.
         """
         self.position = numpy.array(position)
-        self.radius = max(radius,2)
+        self.radius = max(radius, 2)
         self.color = color
         self.available = True
 

@@ -1,4 +1,6 @@
-import numpy, matplotlib.colors
+import numpy
+import matplotlib.colors
+
 
 def color(color_name):
     """
@@ -10,7 +12,8 @@ def color(color_name):
     Returns:
     tuple: A tuple representing the RGB values of the color.
     """
-    return tuple(int(255*v) for v in matplotlib.colors.to_rgb(color_name))
+    return tuple(int(255 * v) for v in matplotlib.colors.to_rgb(color_name))
+
 
 def orientation_vector(θ):
     """
@@ -22,4 +25,4 @@ def orientation_vector(θ):
     Returns:
     numpy.ndarray: A numpy array representing the orientation vector.
     """
-    return numpy.array([numpy.cos(θ),numpy.sin(θ)])
+    return numpy.array([numpy.cos(θ), numpy.sin(θ)])

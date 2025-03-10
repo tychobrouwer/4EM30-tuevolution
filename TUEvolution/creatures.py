@@ -22,13 +22,13 @@ def power(radius, speed):
     Returns:
     int: The power consumption.
     """
-    return (radius**3)*speed**2
+    return (radius**3) * speed**2
 
 
 # Energy consumption of smallest creature per step
 unit_speed = 1
-unit_time = walk_distance//unit_speed
-unit_energy = unit_time*power(radius=2, speed=1)
+unit_time = walk_distance // unit_speed
+unit_energy = unit_time * power(radius=2, speed=1)
 
 
 # Creature status enumeration
@@ -58,7 +58,7 @@ class Creature:
         self.speed_evo_data = speed_evo_data
         self.power = power(self.radius, self.speed)
         self.stamina = stamina
-        self.energy = stamina*unit_energy
+        self.energy = stamina * unit_energy
         self.color = color
 
         # Initialization
@@ -92,11 +92,11 @@ class Creature:
         Returns:
         bool: True if the home is out of reach, False otherwise.
         """
-        range = self.speed*self.energy/self.power
-        max_distance = world.radius+world.homes_width//2
+        range = self.speed * self.energy / self.power
+        max_distance = world.radius + world.homes_width // 2
         if range > max_distance:
             return False
-        return max_distance-numpy.linalg.norm(self.position-world.center) > range
+        return max_distance - numpy.linalg.norm(self.position - world.center) > range
 
     def call_home(self, world):
         """
@@ -105,9 +105,9 @@ class Creature:
         Parameters:
         world (World): The world object.
         """
-        r = world.radius-world.homes_width//2
-        p = self.position-world.center
-        self.destination = world.center+r/numpy.linalg.norm(p)*p
+        r = world.radius - world.homes_width // 2
+        p = self.position - world.center
+        self.destination = world.center + r / numpy.linalg.norm(p) * p
         self.orientation = numpy.arctan2(*numpy.flip(numpy.array(self.destination) - numpy.array(self.position)))
         self.status = Status.RETURNING
 
@@ -121,7 +121,7 @@ class Creature:
         if reorient:
             self.orientation += numpy.random.vonmises(0, walk_turn)
         distance = numpy.random.poisson(walk_distance)
-        self.destination = self.position + distance*utils.orientation_vector(self.orientation)
+        self.destination = self.position + distance * utils.orientation_vector(self.orientation)
 
     def is_exploring(self):
         """
@@ -191,19 +191,19 @@ class Creature:
         Creature: A new creature with slightly varied attributes.
         """
 
-        Δsize = numpy.random.choice(self.size_evo_data["variations"], p=self.size_evo_data["probabilities"])
-        Δspeed = numpy.random.choice(self.speed_evo_data["variations"], p=self.speed_evo_data["probabilities"])
+        new_size_evo_data = self.mutate(self.size_evo_data)
+        new_speed_evo_data = self.mutate(self.speed_evo_data)
 
-        size_evo_data = {}
-        size_evo_data["init"] = self.size_evo_data["init"] + Δsize
-        size_evo_data["variations"] = self.size_evo_data["variations"]
-        size_evo_data["probabilities"] = self.size_evo_data["probabilities"]
-        speed_evo_data = {}
-        speed_evo_data["init"] = self.speed_evo_data["init"] + Δsize
-        speed_evo_data["variations"] = self.speed_evo_data["variations"]
-        speed_evo_data["probabilities"] = self.speed_evo_data["probabilities"]
+        return Creature(new_size_evo_data, new_speed_evo_data, self.stamina, self.color)
 
-        return Creature(size_evo_data, speed_evo_data, self.stamina, self.color)
+    def mutate(attribute_data):
+        """Helper function to mutate a given attribute."""
+        mutation = numpy.random.choice(attribute_data["variations"], p=attribute_data["probabilities"])
+        return {
+            "init": attribute_data["init"] + mutation,
+            "variations": attribute_data["variations"],
+            "probabilities": attribute_data["probabilities"],
+        }
 
     def move(self, step=None):
         """
@@ -214,28 +214,28 @@ class Creature:
         """
 
         # Calculate direction and distance to destination
-        direction = self.destination-self.position
+        direction = self.destination - self.position
         distance = numpy.linalg.norm(direction)
 
         step = self.step if step is None else step
 
         if distance <= step:  # Reached destination
-            self.energy -= self.power*(distance/self.speed)
+            self.energy -= self.power * (distance / self.speed)
             self.position = self.destination.copy()
 
             if self.status == Status.EXPLORING:
                 self.update_destination()
 
                 if distance < step:  # Remainder of step
-                    self.move(step-distance)
+                    self.move(step - distance)
 
             elif self.status == Status.RETURNING:
                 self.status = Status.HOME
 
         else:  # Not reached destination
-            self.energy -= self.power*(step/self.speed)
-            direction = direction.astype(float)/distance
-            self.position += numpy.round(step*direction).astype(int)
+            self.energy -= self.power * (step / self.speed)
+            direction = direction.astype(float) / distance
+            self.position += numpy.round(step * direction).astype(int)
 
     def draw(self, screen):
         """
@@ -245,7 +245,6 @@ class Creature:
         screen (pygame.Surface): The screen to draw on.
         """
         pygame.draw.circle(screen, self.color, self.position, self.radius)
-        charge = max(self.energy/(self.stamina * unit_energy), 0)
-        fill_color = (charge * numpy.array(self.color) + (1-charge) * numpy.array(utils.color('white'))).astype(int)
-        pygame.draw.circle(screen, fill_color, self.position, self.radius-1)
-
+        charge = max(self.energy / (self.stamina * unit_energy), 0)
+        fill_color = (charge * numpy.array(self.color) + (1 - charge) * numpy.array(utils.color('white'))).astype(int)
+        pygame.draw.circle(screen, fill_color, self.position, self.radius - 1)

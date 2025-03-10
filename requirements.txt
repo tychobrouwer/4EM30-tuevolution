@@ -3,3 +3,5 @@ pygame
 matplotlib
 toml
 pathlib
+pycodestyle
+autopep8
