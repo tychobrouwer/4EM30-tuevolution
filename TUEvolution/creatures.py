@@ -196,11 +196,11 @@ class Creature:
 
         return Creature(new_size_evo_data, new_speed_evo_data, self.stamina, self.color)
 
-    def mutate(attribute_data):
+    def mutate(self, attribute_data):
         """Helper function to mutate a given attribute."""
         mutation = numpy.random.choice(attribute_data["variations"], p=attribute_data["probabilities"])
         return {
-            "init": attribute_data["init"] + mutation,
+            "init": attribute_data["init"] + int(mutation),
             "variations": attribute_data["variations"],
             "probabilities": attribute_data["probabilities"],
         }

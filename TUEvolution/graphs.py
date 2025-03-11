@@ -42,7 +42,7 @@ class Cycler:
         self.active = -1 if len(graphs) == 0 else 0
         self.bullet_radius = font_size // 3
         bullets_width = font_size * len(graphs)
-        self.bullet_centers = [numpy.array([self.left + (self.width - bullets_width) // 2 + i * font_size + font_size // 2, self.top + self.height - self.border // 2]) for i in range(len(graphs))]
+        self.bullet_centers = [numpy.array([self.left + (self.width - bullets_width) // 2 + i * font_size + font_size // 2, self.top + self.height - self.border // 2 + 15]) for i in range(len(graphs))]
 
     def next(self):
         """
@@ -92,6 +92,126 @@ class Cycler:
             pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius * numpy.array([3, 1]), self.bullet_centers[0] - self.bullet_radius * numpy.array([3, -1]), 1)
             pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius * numpy.array([3, 0]), self.bullet_centers[0] - self.bullet_radius * numpy.array([4, 1]), 1)
             pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius * numpy.array([3, 0]), self.bullet_centers[0] - self.bullet_radius * numpy.array([4, -1]), 1)
+
+
+class Hist:
+    """
+    A class to represent a histogram.
+    """
+
+    def __init__(self, *, left=None, top=None, width=None, height=None, border=None, xlabel, ylabel, barcolor, fontsize):
+        """
+        Initialize a Histogram object.
+
+        Parameters:
+        left (int, optional): The left position of the histogram. Defaults to None.
+        top (int, optional): The top position of the histogram. Defaults to None.
+        width (int, optional): The width of the histogram. Defaults to None.
+        height (int, optional): The height of the histogram. Defaults to None.
+        border (int, optional): The border size of the histogram. Defaults to None.
+        xlabel (str): The label for the x-axis.
+        ylabel (str): The label for the y-axis.
+        barcolor (tuple): The color of the bars in the histogram.
+        fontsize (int): The font size used in the histogram.
+        """
+        self.left = left
+        self.top = top
+        self.width = width
+        self.height = height
+        self.border = border
+
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.barcolor = barcolor
+
+        self.xmin = 0
+        self.xmax = 1
+
+        self.data = []
+        self.font = pygame.font.SysFont('Arial', fontsize)
+
+    def add(self, value):
+        """
+        Add a data value to the histogram.
+
+        Parameters:
+        value (int or float): The value to add to the histogram.
+        """
+
+        if isinstance(value, int):
+            self.data.append(value)
+
+            self.xmin = min(self.data)
+            self.xmax = max(self.data)
+
+    def draw_grid(self, screen, bin_edges, hist_values):
+        """
+        Draw the grid for the histogram and display axis values.
+
+        Parameters:
+        screen (pygame.Surface): The screen to draw on.
+        bin_edges (numpy.ndarray): The edges of the bins.
+        hist_values (numpy.ndarray): The values for each bin.
+        """
+        pygame.draw.rect(screen, (0, 0, 0), (self.left + self.border, self.top + self.border, self.width - 2 * self.border, self.height - 2 * self.border), 3)
+
+        # x and y axis labels
+        label = self.font.render(self.xlabel, True, (0, 0, 0))
+        screen.blit(label, (self.left + (self.width - label.get_width()) // 2, self.top + self.height - self.border + 15))
+
+        label = self.font.render(self.ylabel, True, (0, 0, 0))
+        label = pygame.transform.rotate(label, 90)
+        screen.blit(label, (self.left + self.border - label.get_width() - 30, self.top + (self.height - label.get_height()) // 2))
+
+        # Draw x-axis values using the provided xmin and xmax
+        bins = len(bin_edges) - 1
+        bin_edges = numpy.linspace(self.xmin, self.xmax, bins)
+
+        for i, edge in enumerate(bin_edges):
+            label = self.font.render(f'{int(edge)}', True, (0, 0, 0))
+            x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) / bins - label.get_width() / 2
+            y_pos = self.top + self.height - self.border
+            screen.blit(label, (x_pos, y_pos))
+
+        num_y_labels = min(5, len(self.data))
+
+        # Draw y-axis values
+        max_height = max(hist_values) if hist_values.any() else 1
+        for i in range(num_y_labels):  # Draw 5 evenly spaced y-axis labels
+            y_val = int((i / num_y_labels) * max_height)
+            y_pos = self.top + self.height - self.border - (i * (self.height - 2 * self.border) / 4)
+            label = self.font.render(f'{y_val}', True, (0, 0, 0))
+            screen.blit(label, (self.left + self.border - label.get_width() - 5, y_pos))
+
+    def draw(self, screen):
+        """
+        Draw the histogram on the screen.
+
+        Parameters:
+        screen (pygame.Surface): The screen to draw on.
+        """
+        if not self.data:
+            return
+
+        bins = self.xmax - self.xmin + 1
+
+        # Convert data to a NumPy array and ensure numeric type
+        numeric_data = numpy.array(self.data, dtype=float)
+        hist_values, bin_edges = numpy.histogram(numeric_data, bins=bins, range=(self.xmin, self.xmax))
+        bin_width = (self.width - 2 * self.border) / bins
+        max_height = max(hist_values) if hist_values.any() else 1
+
+        self.draw_grid(screen, bin_edges, hist_values)
+
+        for i in range(bins):
+            bar_height = (hist_values[i] / max_height) * (self.height - 2 * self.border)
+            bar_rect = pygame.Rect(
+                self.left + self.border + i * bin_width,
+                self.top + self.height - self.border - bar_height,
+                bin_width - 2,
+                bar_height
+            )
+            pygame.draw.rect(screen, self.barcolor, bar_rect)
 
 
 class XY:
