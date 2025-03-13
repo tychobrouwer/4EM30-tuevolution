@@ -141,9 +141,6 @@ class Hist:
         if isinstance(value, int):
             self.data.append(value)
 
-            self.xmin = min(self.data)
-            self.xmax = max(self.data)
-
     def clear(self):
         """
         Clear the current data of the histogram
@@ -151,44 +148,43 @@ class Hist:
 
         self.data = []
 
-    def draw_grid(self, screen, bin_edges, hist_values):
+    def draw_grid(self, screen, bin_edges, hist_values, max_y_value):
         """
         Draw the grid for the histogram and display axis values.
 
         Parameters:
         screen (pygame.Surface): The screen to draw on.
-        bin_edges (numpy.ndarray): The edges of the bins.
-        hist_values (numpy.ndarray): The values for each bin.
+        bin_edges (array) The edges of the bins.
+        hist_values (array): The values for each bin.
+        max_y_value (int): max y value of the histogram.
         """
         pygame.draw.rect(screen, utils.color('black'), (self.left + self.border, self.top + self.border, self.width - 2 * self.border, self.height - 2 * self.border), 3)
 
         # x and y axis labels
-        label = self.font.render(self.xlabel, True, (0, 0, 0))
+        label = self.font.render(self.xlabel, True, utils.color('black'))
         screen.blit(label, (self.left + (self.width - label.get_width()) // 2, self.top + self.height - self.border + 20))
 
-        label = self.font.render(self.ylabel, True, (0, 0, 0))
+        label = self.font.render(self.ylabel, True, utils.color('black'))
         label = pygame.transform.rotate(label, 90)
         screen.blit(label, (self.left + self.border - label.get_width() - 30, self.top + (self.height - label.get_height()) // 2))
 
-        # Draw x-axis values using the provided xmin and xmax
-        bins = len(bin_edges) - 1
-        bin_edges = numpy.linspace(self.xmin, self.xmax, bins)
+        bins = len(bin_edges)
 
+        # Draw x-axis values using the provided xmin and xmax
         for i, edge in enumerate(bin_edges):
-            label = self.font.render(f'{int(edge)}', True, (0, 0, 0))
+            label = self.font.render(f'{int(edge)}', True, utils.color('black'))
             x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) // bins - label.get_width() // 2
             y_pos = self.top + self.height - self.border
             screen.blit(label, (x_pos, y_pos))
 
-        num_y_labels = min(5, len(self.data))
-
         # Draw y-axis values
-        max_height = max(hist_values) if hist_values.any() else 1
+        num_y_labels = 6
+
         for i in range(num_y_labels):  # Draw 5 evenly spaced y-axis labels
-            y_val = int((i / num_y_labels) * max_height)
-            label = self.font.render(f'{y_val}', True, (0, 0, 0))
+            y_val = int((float(i) / (num_y_labels - 1)) * max_y_value)
+            label = self.font.render(f'{y_val}', True, utils.color('black'))
             x_pos = self.left + self.border - label.get_width() - 5
-            y_pos = self.top + self.height - self.border - (i * (self.height - 2 * self.border) // 4) - label.get_height() // 2
+            y_pos = self.top + self.height - self.border - (i * (self.height - 2 * self.border) // (num_y_labels - 1)) - label.get_height() // 2
             screen.blit(label, (x_pos, y_pos))
 
     def draw(self, screen):
@@ -201,18 +197,19 @@ class Hist:
         if not self.data:
             return
 
-        bins = self.xmax - self.xmin + 1
+        hist_values = [self.data.count(x) for x in set(self.data)]
+        bin_edges = list(range(min(self.data), max(self.data) + 1))
+        bins = len(bin_edges)
 
-        # Convert data to a NumPy array and ensure numeric type
-        numeric_data = numpy.array(self.data, dtype=float)
-        hist_values, bin_edges = numpy.histogram(numeric_data, bins=bins, range=(self.xmin, self.xmax))
+        max_y_value = max(hist_values) if len(self.data) > 0 else 1
+        max_y_value = (max_y_value - 1) // 5 * 5 + 5
+
+        self.draw_grid(screen, bin_edges, hist_values, max_y_value)
+
         bin_width = (self.width - 2 * self.border) / bins
-        max_height = max(hist_values) if hist_values.any() else 1
-
-        self.draw_grid(screen, bin_edges, hist_values)
 
         for i in range(bins):
-            bar_height = (hist_values[i] / max_height) * (self.height - 2 * self.border)
+            bar_height = (hist_values[i] / max_y_value) * (self.height - 2 * self.border)
             bar_rect = pygame.Rect(
                 self.left + self.border + i * bin_width,
                 self.top + self.height - self.border - bar_height,
@@ -339,7 +336,7 @@ class XY:
                 x = int(self.left + self.border + (xtick - xlim[0]) / (xlim[1] - xlim[0]) * (self.width - 2 * self.border))
                 pygame.draw.line(self.cached_grid, utils.color('gray'), (x, self.top + self.border), (x, self.top + self.height - self.border), 1)
                 if i % 5 == 0:
-                    label = self.font.render(f'{int(xtick)}', True, (0, 0, 0))
+                    label = self.font.render(f'{int(xtick)}', True, utils.color('black'))
                     self.cached_grid.blit(label, (x - label.get_width() // 2, self.top + self.height - self.border))
 
             for i, ytick in enumerate(yticks):
@@ -347,14 +344,14 @@ class XY:
 
                 pygame.draw.line(self.cached_grid, utils.color('gray'), (self.left + self.border, y), (self.left + self.width - self.border, y), 1)
                 if i % 5 == 0:
-                    label = self.font.render(f'{int(ytick)}', True, (0, 0, 0))
+                    label = self.font.render(f'{int(ytick)}', True, utils.color('black'))
                     self.cached_grid.blit(label, (self.left + self.border - label.get_width() - 5, y - label.get_height() // 2))
 
             # x and y axis labels
-            label = self.font.render(self.xlabel, True, (0, 0, 0))
+            label = self.font.render(self.xlabel, True, utils.color('black'))
             self.cached_grid.blit(label, (self.left + (self.width - label.get_width()) // 2, self.top + self.height - self.border + 20))
 
-            label = self.font.render(self.ylabel, True, (0, 0, 0))
+            label = self.font.render(self.ylabel, True, utils.color('black'))
             label = pygame.transform.rotate(label, 90)
             self.cached_grid.blit(label, (self.left + self.border - label.get_width() - 30, self.top + (self.height - label.get_height()) // 2))
 

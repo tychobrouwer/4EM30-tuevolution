@@ -4,6 +4,7 @@ import toml
 import pathlib
 import sys
 import os
+import time
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -131,13 +132,15 @@ class App:
                                      ylabel='Number of creatures',
                                      barcolor=utils.color('royalblue'),
                                      fontsize=self.font_size)
-        self.size_hist.add(self.creature_size['init'])
+        for _ in range(self.population):
+            self.size_hist.add(self.creature_size['init'])
 
         self.speed_hist = graphs.Hist(xlabel='Speed',
                                       ylabel='Number of creatures',
                                       barcolor=utils.color('royalblue'),
                                       fontsize=self.font_size)
-        self.speed_hist.add(self.creature_speed['init'])
+        for _ in range(self.population):
+            self.speed_hist.add(self.creature_speed['init'])
 
         self.graphs = graphs.Cycler(left=self.sim_width,
                                     top=0,
@@ -235,7 +238,6 @@ class App:
 
         # End of day/generation check
         if (self.world.end_of_day() or all((creature.is_home() or creature.has_perished()) for creature in self.creatures)):
-
             self.size_hist.clear()
             self.speed_hist.clear()
 
@@ -259,6 +261,9 @@ class App:
                 for creature in self.creatures:
                     self.size_hist.add(creature.size_evo_data['init'])
                     self.speed_hist.add(creature.speed_evo_data['init'])
+
+                counts = [[x, self.speed_hist.data.count(x)] for x in set(self.speed_hist.data)]
+                print(counts)
 
                 self.population = len(self.creatures)
                 self.world.assign_homes(self.creatures)
