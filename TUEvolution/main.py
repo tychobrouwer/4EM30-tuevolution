@@ -236,6 +236,9 @@ class App:
         # End of day/generation check
         if (self.world.end_of_day() or all((creature.is_home() or creature.has_perished()) for creature in self.creatures)):
 
+            self.size_hist.clear()
+            self.speed_hist.clear()
+
             self.world.next_day()
             self.creatures = [creature for creature in self.creatures if creature.is_home()]
 
@@ -248,16 +251,14 @@ class App:
                 for creature in self.creatures:
                     next_generation.append(creature.reincarnate())
 
-                    self.size_hist.add(next_generation[-1].size_evo_data['init'])
-                    self.speed_hist.add(next_generation[-1].speed_evo_data['init'])
-
                     if creature.food == 2:
                         next_generation.append(creature.reproduce())
 
-                        self.size_hist.add(next_generation[-1].size_evo_data['init'])
-                        self.speed_hist.add(next_generation[-1].speed_evo_data['init'])
-
                 self.creatures = next_generation
+
+                for creature in self.creatures:
+                    self.size_hist.add(creature.size_evo_data['init'])
+                    self.speed_hist.add(creature.speed_evo_data['init'])
 
                 self.population = len(self.creatures)
                 self.world.assign_homes(self.creatures)
