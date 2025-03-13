@@ -128,17 +128,17 @@ class App:
                                     fontsize=self.font_size)
         self.food_graph.add((self.generation, len(self.food)))
 
-        self.size_hist = graphs.Hist(xlabel='Size',
-                                     ylabel='Number of creatures',
-                                     barcolor=utils.color('royalblue'),
-                                     fontsize=self.font_size)
+        self.size_hist = graphs.Histogram(xlabel='Size',
+                                          ylabel='Number of creatures',
+                                          barcolor=utils.color('royalblue'),
+                                          fontsize=self.font_size)
         for _ in range(self.population):
             self.size_hist.add(self.creature_size['init'])
 
-        self.speed_hist = graphs.Hist(xlabel='Speed',
-                                      ylabel='Number of creatures',
-                                      barcolor=utils.color('royalblue'),
-                                      fontsize=self.font_size)
+        self.speed_hist = graphs.Histogram(xlabel='Speed',
+                                           ylabel='Number of creatures',
+                                           barcolor=utils.color('royalblue'),
+                                           fontsize=self.font_size)
         for _ in range(self.population):
             self.speed_hist.add(self.creature_speed['init'])
 

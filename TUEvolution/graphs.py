@@ -94,7 +94,7 @@ class Cycler:
             pygame.draw.line(screen, utils.color('darkgray'), self.bullet_centers[0] - self.bullet_radius * numpy.array([3, 0]), self.bullet_centers[0] - self.bullet_radius * numpy.array([4, -1]), 1)
 
 
-class Hist:
+class Histogram:
     """
     A class to represent a histogram.
     """
