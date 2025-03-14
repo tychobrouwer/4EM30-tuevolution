@@ -170,24 +170,12 @@ class Histogram:
 
         bins = len(bin_edges)
 
-        # # Draw x-axis values using the provided xmin and xmax
-        # for i, edge in enumerate(bin_edges):
-        #     if hist_values[i] > 0:  # Only label bins that have data
-        #         label = self.font.render(f'{int(edge)}', True, utils.color('black'))
-        #         x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) // bins - label.get_width() // 2
-        #         y_pos = self.top + self.height - self.border
-        #         screen.blit(label, (x_pos, y_pos))
-
         # Draw x-axis values using the provided xmin and xmax
         for i, edge in enumerate(bin_edges):
-            if edge % spacing == 0:
-                if spacing > 1:
-                    i = i % spacing
-
-                label = self.font.render(f'{int(edge)}', True, utils.color('black'))
-                x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) // bins - label.get_width() // 2
-                y_pos = self.top + self.height - self.border
-                screen.blit(label, (x_pos, y_pos))
+            label = self.font.render(f'{int(edge)}', True, utils.color('black'))
+            x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) // bins - label.get_width() // 2
+            y_pos = self.top + self.height - self.border
+            screen.blit(label, (x_pos, y_pos))
 
         # Draw y-axis values
         num_y_labels = 6
@@ -211,31 +199,35 @@ class Histogram:
 
         bin_edges = list(range(min(self.data), max(self.data) + 1))
         hist_values = [self.data.count(x) if x in self.data else 0 for x in bin_edges]
-        bins = len(bin_edges)
 
-        non_zero_bins = [edge for i, edge in enumerate(bin_edges) if hist_values[i] > 0]
+        non_zero_bin_edges = [edge for i, edge in enumerate(bin_edges) if hist_values[i] > 0]
+        non_zero_hist_values = [value for value in hist_values if value > 0]
 
-        spacing = [j - i for i, j in zip(non_zero_bins[:-1], non_zero_bins[1:])] if len(non_zero_bins) > 1 else [1]
+        # get diffence between successive bin edges
+        spacing = numpy.diff(non_zero_bin_edges).tolist() if len(non_zero_bin_edges) > 1 else [1]
         min_spacing = min(spacing)
 
-        if len(set([x % min_spacing for x in spacing])) == 1:
+        # if the spacing between bins % min(spacing) is same for all bins, then we can use that as the spacing
+        if len(set([x % min_spacing for x in spacing])) == 1 and min_spacing > 1:
             spacing = min_spacing
-            bins = len(non_zero_bins)
-            bin_edges = non_zero_bins
+            bin_edges = non_zero_bin_edges
+            hist_values = non_zero_hist_values
         else:
             spacing = 1
 
+        # Get the maximum y value for the histogram
         max_y_value = max(hist_values) if len(self.data) > 0 else 1
+        # Round up to the nearest multiple of 5
         max_y_value = (max_y_value - 1) // 5 * 5 + 5
 
         self.draw_grid(screen, bin_edges, spacing, max_y_value)
 
-        bin_width = (self.width - 2 * self.border) / bins
+        bin_width = (self.width - 2 * self.border) / len(bin_edges)
 
         for i, hist_value in enumerate(hist_values):
             bar_height = (hist_value / max_y_value) * (self.height - 2 * self.border)
             bar_rect = pygame.Rect(
-                self.left + self.border + i / spacing * bin_width,
+                self.left + self.border + i * bin_width,
                 self.top + self.height - self.border - bar_height,
                 bin_width - 2,
                 bar_height

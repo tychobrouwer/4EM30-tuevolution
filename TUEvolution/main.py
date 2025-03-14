@@ -259,6 +259,7 @@ class App:
         if (self.world.end_of_day() or all((creature.is_home() or creature.has_perished()) for creature in self.creatures)):
             self.size_hist.clear()
             self.speed_hist.clear()
+            self.sense_hist.clear()
 
             self.world.next_day()
             self.creatures = [creature for creature in self.creatures if creature.is_home()]
