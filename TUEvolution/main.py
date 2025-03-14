@@ -20,7 +20,7 @@ class App:
     A class to represent the main application for the TU/evolution simulation.
     """
 
-    def __init__(self, *, population, generations, food_supply, world_day, creature_size, creature_speed, creature_stamina):
+    def __init__(self, *, population, generations, food_supply, world_day, creature_size, creature_speed, creature_stamina, creature_sense):
         """
         Initialize the App object.
 
@@ -32,6 +32,7 @@ class App:
         creature_size (int): The size of the creatures.
         creature_speed (int): The speed of the creatures.
         creature_stamina (int): The stamina of the creatures.
+        creature_sense (int): The sense range of creatures.
         """
         self.name = "TU/evolution"
 
@@ -73,6 +74,15 @@ class App:
         elif isinstance(creature_speed, object):
             self.creature_speed = creature_speed
 
+        if isinstance(creature_sense, int):
+            self.creature_sense = {}
+            self.creature_sense["init"] = creature_sense
+            self.creature_sense["variations"] = [0]
+            self.creature_sense["probabilities"] = [1]
+
+        elif isinstance(creature_sense, object):
+            self.creature_sense = creature_sense
+
         self.creature_stamina = creature_stamina
 
         # Frame rate
@@ -100,7 +110,7 @@ class App:
 
         # Population
         self.generation = 0
-        self.creatures = [Creature(self.creature_size, self.creature_speed, self.creature_stamina, utils.color('red')) for _ in range(self.population)]
+        self.creatures = [Creature(self.creature_size, self.creature_speed, self.creature_sense, self.creature_stamina, utils.color('red')) for _ in range(self.population)]
         self.world.assign_homes(self.creatures)
 
         # Food
@@ -311,7 +321,7 @@ class App:
 if __name__ == "__main__":
 
     # Specify the scenario
-    scenario = 'question1'
+    scenario = 'question3'
 
     # Load the scenario
     scenario_file = pathlib.Path(__file__).resolve().parent.parent / 'scenarios' / f'{scenario}.toml'
@@ -324,7 +334,8 @@ if __name__ == "__main__":
               world_day=scenario['world']['day'],
               creature_size=scenario['creature']['size'],
               creature_speed=scenario['creature']['speed'],
-              creature_stamina=scenario['creature']['stamina'])
+              creature_stamina=scenario['creature']['stamina'],
+              creature_sense=scenario['creature']['sense'])
 
     # Run the simulation
     app.execute()

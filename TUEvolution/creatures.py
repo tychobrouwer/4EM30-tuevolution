@@ -41,13 +41,14 @@ class Status(enum.Enum):
 
 # Creature class
 class Creature:
-    def __init__(self, size_evo_data, speed_evo_data, stamina, color):
+    def __init__(self, size_evo_data, speed_evo_data, sense_evo_data, stamina, color):
         """
         Initialize a Creature object.
 
         Parameters:
         radius (int): The radius of the creature.
         speed (int): The speed of the creature.
+        sense (int): The sense range of the creature.
         stamina (int): The stamina of the creature.
         color (tuple): The RGB color of the creature.
         """
@@ -56,6 +57,8 @@ class Creature:
         self.size_evo_data = size_evo_data
         self.speed = max(speed_evo_data["init"], 1)
         self.speed_evo_data = speed_evo_data
+        self.sense = max(sense_evo_data["init"] // 2, 2)
+        self.sense_evo_data = sense_evo_data
         self.power = power(self.radius, self.speed)
         self.stamina = stamina
         self.energy = stamina * unit_energy
@@ -181,7 +184,7 @@ class Creature:
         Returns:
         Creature: A new creature with the same attributes.
         """
-        return Creature(self.size_evo_data, self.speed_evo_data, self.stamina, self.color)
+        return Creature(self.size_evo_data, self.speed_evo_data, self.sense_evo_data, self.stamina, self.color)
 
     def reproduce(self):
         """
@@ -193,8 +196,9 @@ class Creature:
 
         new_size_evo_data = self.mutate(self.size_evo_data)
         new_speed_evo_data = self.mutate(self.speed_evo_data)
+        new_sense_evo_data = self.mutate(self.sense_evo_data)
 
-        return Creature(new_size_evo_data, new_speed_evo_data, self.stamina, self.color)
+        return Creature(new_size_evo_data, new_speed_evo_data, new_sense_evo_data, self.stamina, self.color)
 
     def mutate(self, attribute_data):
         """Helper function to mutate a given attribute."""
@@ -244,6 +248,7 @@ class Creature:
         Parameters:
         screen (pygame.Surface): The screen to draw on.
         """
+        pygame.draw.circle(screen, 'lightblue', self.position, self.sense)
         pygame.draw.circle(screen, self.color, self.position, self.radius)
         charge = max(self.energy / (self.stamina * unit_energy), 0)
         fill_color = (charge * numpy.array(self.color) + (1 - charge) * numpy.array(utils.color('white'))).astype(int)
