@@ -37,6 +37,7 @@ class Status(enum.Enum):
     RETURNING = "returning"
     HOME = "home"
     PERISHED = "perished"
+    TARGETING = "targeting"
 
 
 # Creature class
@@ -63,6 +64,7 @@ class Creature:
         self.stamina = stamina
         self.energy = stamina * unit_energy
         self.color = color
+        self.targeting = False
 
         # Initialization
         self.step = self.speed
@@ -121,10 +123,13 @@ class Creature:
         Parameters:
         reorient (bool): Whether to reorient the creature.
         """
-        if reorient:
-            self.orientation += numpy.random.vonmises(0, walk_turn)
-        distance = numpy.random.poisson(walk_distance)
-        self.destination = self.position + distance * utils.orientation_vector(self.orientation)
+        # Dont random walk if targeting
+        if self.targeting is False:
+            if reorient:
+                self.orientation += numpy.random.vonmises(0, walk_turn)
+
+            distance = numpy.random.poisson(walk_distance)
+            self.destination = self.position + distance * utils.orientation_vector(self.orientation)
 
     def is_exploring(self):
         """
@@ -226,6 +231,7 @@ class Creature:
         if distance <= step:  # Reached destination
             self.energy -= self.power * (distance / self.speed)
             self.position = self.destination.copy()
+            self.targeting = False
 
             if self.status == Status.EXPLORING:
                 self.color = (255, 0, 0)
@@ -253,14 +259,42 @@ class Creature:
         """
         self.energy -= self.sense/5
 
+        # Always run from predators regardless of food or status
         for p in predators:
-            if sum(p.position - self.position)**2 <= self.sense**2 and self.radius < 1.2 * p.radius and (not p.is_home()):
-                self.destination = 2*self.position - p.position
+            distance = numpy.linalg.norm(p.position - self.position)
+
+            # Preditor is self, so ignore
+            if distance == 0:
+                continue
+
+            if distance <= self.sense and self.radius < 1.2 * p.radius and (not p.is_home()):
+                # Run in opposite direction of predator
+                run_direction = (self.position - p.position) / distance
+                # Run distance is the remaining distance such that the predator is at the edge of the sense range
+                run_distance = self.sense - distance
+
+                self.destination = self.position + run_distance * run_direction
+                self.targeting = True
                 return True
+
+        # If targeting food or predator, continue targeting
+        if self.targeting is True and self.status == Status.EXPLORING:
+            distance_target = numpy.linalg.norm(self.destination - self.position)
+
+            # If target is out of range, stop targeting
+            if distance_target > self.sense:
+                self.targeting = False
+                return False
+            
+            return True
         
+        # Target food if hungry and in range
         for f in food:
-            if sum(f.position - self.position)**2 <= self.sense**2 and self.is_hungry():
+            distance = numpy.linalg.norm(f.position - self.position)
+
+            if distance <= self.sense and self.is_hungry():
                 self.destination = f.position
+                self.targeting = True
                 return True
 
         return False
@@ -273,7 +307,10 @@ class Creature:
         Parameters:
         screen (pygame.Surface): The screen to draw on.
         """
-        pygame.draw.circle(screen, 'lightblue', self.position, self.sense)
+        sense_surface = pygame.Surface((self.sense * 2, self.sense * 2), pygame.SRCALPHA)
+        pygame.draw.circle(sense_surface, (173, 216, 230, 128), (self.sense, self.sense), self.sense)
+        screen.blit(sense_surface, self.position - numpy.array([self.sense, self.sense]))
+
         pygame.draw.circle(screen, self.color, self.position, self.radius)
         charge = max(self.energy / (self.stamina * unit_energy), 0)
         fill_color = (charge * numpy.array(self.color) + (1 - charge) * numpy.array(utils.color('white'))).astype(int)

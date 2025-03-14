@@ -10,16 +10,16 @@ stamina = 2000
 
 [creature.size]
     init = 12 # Value for the primal creatures
-    variations = [-1,0,+2] # Possible mutation values
+    variations = [-1,0,+1] # Possible mutation values
     probabilities = [0.25,0.5,0.25] # Probability of each value
 
 [creature.speed]
     init = 3 # Value for the primal creatures
-    variations = [-2,0,+2] # Possible mutation values
+    variations = [-1,0,+1] # Possible mutation values
     probabilities = [0.25,0.5,0.25] # Probability of each value
 
 [creature.sense]
-    init = 60 # Value for the primal creatures
+    init = 100 # Value for the primal creatures
     variations = [-10,0,+10] # Possible mutation values
     probabilities = [0.25,0.5,0.25] # Probability of each value
 
