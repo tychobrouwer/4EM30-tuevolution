@@ -245,6 +245,11 @@ class Creature:
 
     def sense_surroundings(self, predators, food):
         """
+        Sense the surroundings for predators and food.
+
+        Parameters:
+        predators (list): The list of predators.
+        food (list): The list of food.
         """
         self.energy -= self.sense/5
 

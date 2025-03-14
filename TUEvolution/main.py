@@ -4,7 +4,6 @@ import toml
 import pathlib
 import sys
 import os
-import time
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -45,8 +44,8 @@ class App:
 
         self.sim_width = 600
         self.sim_height = 600
-        self.graph_width = 600
-        self.graph_height = 600
+        self.graph_width = 570
+        self.graph_height = 570
         self.font_size = 16
         self.size = (self.sim_width + self.graph_width, self.sim_height)
 
@@ -86,7 +85,7 @@ class App:
         self.creature_stamina = creature_stamina
 
         # Frame rate
-        self.fps = 400
+        self.fps = 60
 
         # Simulation
         self.population = population
@@ -324,11 +323,14 @@ class App:
 if __name__ == "__main__":
 
     # Specify the scenario
-    scenario = 'question3'
+    scenario = 'question1'
 
     # Load the scenario
     scenario_file = pathlib.Path(__file__).resolve().parent.parent / 'scenarios' / f'{scenario}.toml'
     scenario = toml.load(scenario_file)
+
+    if not hasattr(scenario['creature'], 'sense'):
+        scenario['creature']['sense'] = 0
 
     # Create simulation instance
     app = App(population=scenario['world']['init']['population'],
