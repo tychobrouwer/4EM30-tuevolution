@@ -214,6 +214,9 @@ class App:
             if creature.energy < 0:
                 creature.perish()
                 continue
+            
+            if creature.is_exploring():
+                creature.sense_surroundings(self.creatures, self.food)
 
             # Collect food until two food has been collected
             for f in range(len(self.food) - 1, -1, -1):

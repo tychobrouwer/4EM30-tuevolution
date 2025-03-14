@@ -204,7 +204,7 @@ class Creature:
         """Helper function to mutate a given attribute."""
         mutation = numpy.random.choice(attribute_data["variations"], p=attribute_data["probabilities"])
         return {
-            "init": attribute_data["init"] + int(mutation),
+            "init": max(attribute_data["init"] + int(mutation), 0),
             "variations": attribute_data["variations"],
             "probabilities": attribute_data["probabilities"],
         }
@@ -228,6 +228,7 @@ class Creature:
             self.position = self.destination.copy()
 
             if self.status == Status.EXPLORING:
+                self.color = (255, 0, 0)
                 self.update_destination()
 
                 if distance < step:  # Remainder of step
@@ -235,11 +236,30 @@ class Creature:
 
             elif self.status == Status.RETURNING:
                 self.status = Status.HOME
+                self.color = (0, 255, 0)
 
         else:  # Not reached destination
             self.energy -= self.power * (step / self.speed)
             direction = direction.astype(float) / distance
             self.position += numpy.round(step * direction).astype(int)
+
+    def sense_surroundings(self, predators, food):
+        """
+        """
+        self.energy -= self.sense/5
+
+        for p in predators:
+            if sum(p.position - self.position)**2 <= self.sense**2 and self.radius < 1.2 * p.radius and (not p.is_home()):
+                self.destination = 2*self.position - p.position
+                return True
+        
+        for f in food:
+            if sum(f.position - self.position)**2 <= self.sense**2 and self.is_hungry():
+                self.destination = f.position
+                return True
+
+        return False
+
 
     def draw(self, screen):
         """
