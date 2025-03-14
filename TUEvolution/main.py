@@ -85,7 +85,7 @@ class App:
         self.creature_stamina = creature_stamina
 
         # Frame rate
-        self.fps = 60
+        self.fps = 200
 
         # Simulation
         self.population = population
@@ -214,7 +214,7 @@ class App:
                 creature.perish()
                 continue
             
-            if creature.is_exploring():
+            if creature.is_exploring() and creature.sense > 0:
                 creature.sense_surroundings(self.creatures, self.food)
 
             # Collect food until two food has been collected
@@ -275,7 +275,6 @@ class App:
                     self.speed_hist.add(creature.speed_evo_data['init'])
 
                 counts = [[x, self.speed_hist.data.count(x)] for x in set(self.speed_hist.data)]
-                print(counts)
 
                 self.population = len(self.creatures)
                 self.world.assign_homes(self.creatures)
@@ -323,13 +322,13 @@ class App:
 if __name__ == "__main__":
 
     # Specify the scenario
-    scenario = 'question1'
+    scenario = 'question3'
 
     # Load the scenario
     scenario_file = pathlib.Path(__file__).resolve().parent.parent / 'scenarios' / f'{scenario}.toml'
     scenario = toml.load(scenario_file)
 
-    if not hasattr(scenario['creature'], 'sense'):
+    if not 'sense' in scenario['creature']:
         scenario['creature']['sense'] = 0
 
     # Create simulation instance

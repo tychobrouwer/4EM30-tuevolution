@@ -208,8 +208,8 @@ class Histogram:
 
         bin_width = (self.width - 2 * self.border) / bins
 
-        for i in range(bins):
-            bar_height = (hist_values[i] / max_y_value) * (self.height - 2 * self.border)
+        for i, hist_value in enumerate(hist_values):
+            bar_height = (hist_value / max_y_value) * (self.height - 2 * self.border)
             bar_rect = pygame.Rect(
                 self.left + self.border + i * bin_width,
                 self.top + self.height - self.border - bar_height,
