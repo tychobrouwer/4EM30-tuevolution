@@ -148,14 +148,14 @@ class Histogram:
 
         self.data = []
 
-    def draw_grid(self, screen, bin_edges, hist_values, max_y_value):
+    def draw_grid(self, screen, bin_edges, spacing, max_y_value):
         """
         Draw the grid for the histogram and display axis values.
 
         Parameters:
         screen (pygame.Surface): The screen to draw on.
         bin_edges (array) The edges of the bins.
-        hist_values (array): The values for each bin.
+        spacing (int): The spacing between the bins.
         max_y_value (int): max y value of the histogram.
         """
         pygame.draw.rect(screen, utils.color('black'), (self.left + self.border, self.top + self.border, self.width - 2 * self.border, self.height - 2 * self.border), 3)
@@ -170,12 +170,24 @@ class Histogram:
 
         bins = len(bin_edges)
 
+        # # Draw x-axis values using the provided xmin and xmax
+        # for i, edge in enumerate(bin_edges):
+        #     if hist_values[i] > 0:  # Only label bins that have data
+        #         label = self.font.render(f'{int(edge)}', True, utils.color('black'))
+        #         x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) // bins - label.get_width() // 2
+        #         y_pos = self.top + self.height - self.border
+        #         screen.blit(label, (x_pos, y_pos))
+
         # Draw x-axis values using the provided xmin and xmax
         for i, edge in enumerate(bin_edges):
-            label = self.font.render(f'{int(edge)}', True, utils.color('black'))
-            x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) // bins - label.get_width() // 2
-            y_pos = self.top + self.height - self.border
-            screen.blit(label, (x_pos, y_pos))
+            if edge % spacing == 0:
+                if spacing > 1:
+                    i = i % spacing
+
+                label = self.font.render(f'{int(edge)}', True, utils.color('black'))
+                x_pos = self.left + self.border + (i + 0.5) * (self.width - 2 * self.border) // bins - label.get_width() // 2
+                y_pos = self.top + self.height - self.border
+                screen.blit(label, (x_pos, y_pos))
 
         # Draw y-axis values
         num_y_labels = 6
@@ -197,21 +209,33 @@ class Histogram:
         if not self.data:
             return
 
-        hist_values = [self.data.count(x) for x in set(self.data)]
         bin_edges = list(range(min(self.data), max(self.data) + 1))
+        hist_values = [self.data.count(x) if x in self.data else 0 for x in bin_edges]
         bins = len(bin_edges)
+
+        non_zero_bins = [edge for i, edge in enumerate(bin_edges) if hist_values[i] > 0]
+
+        spacing = [j - i for i, j in zip(non_zero_bins[:-1], non_zero_bins[1:])] if len(non_zero_bins) > 1 else [1]
+        min_spacing = min(spacing)
+
+        if len(set([x % min_spacing for x in spacing])) == 1:
+            spacing = min_spacing
+            bins = len(non_zero_bins)
+            bin_edges = non_zero_bins
+        else:
+            spacing = 1
 
         max_y_value = max(hist_values) if len(self.data) > 0 else 1
         max_y_value = (max_y_value - 1) // 5 * 5 + 5
 
-        self.draw_grid(screen, bin_edges, hist_values, max_y_value)
+        self.draw_grid(screen, bin_edges, spacing, max_y_value)
 
         bin_width = (self.width - 2 * self.border) / bins
 
         for i, hist_value in enumerate(hist_values):
             bar_height = (hist_value / max_y_value) * (self.height - 2 * self.border)
             bar_rect = pygame.Rect(
-                self.left + self.border + i * bin_width,
+                self.left + self.border + i / spacing * bin_width,
                 self.top + self.height - self.border - bar_height,
                 bin_width - 2,
                 bar_height

@@ -151,12 +151,19 @@ class App:
         for _ in range(self.population):
             self.speed_hist.add(self.creature_speed['init'])
 
+        self.sense_hist = graphs.Histogram(xlabel='Sense',
+                                           ylabel='Number of creatures',
+                                           barcolor=utils.color('royalblue'),
+                                           fontsize=self.font_size)
+        for _ in range(self.population):
+            self.sense_hist.add(self.creature_sense['init'])
+
         self.graphs = graphs.Cycler(left=self.sim_width,
                                     top=0,
                                     width=self.graph_width,
                                     height=self.graph_height,
                                     border=self.border,
-                                    graphs=[self.population_graph, self.food_graph, self.size_hist, self.speed_hist],
+                                    graphs=[self.population_graph, self.food_graph, self.size_hist, self.speed_hist, self.sense_hist],
                                     font_size=self.font_size)
 
         self._running = True
@@ -273,8 +280,7 @@ class App:
                 for creature in self.creatures:
                     self.size_hist.add(creature.size_evo_data['init'])
                     self.speed_hist.add(creature.speed_evo_data['init'])
-
-                counts = [[x, self.speed_hist.data.count(x)] for x in set(self.speed_hist.data)]
+                    self.sense_hist.add(creature.sense_evo_data['init'])
 
                 self.population = len(self.creatures)
                 self.world.assign_homes(self.creatures)

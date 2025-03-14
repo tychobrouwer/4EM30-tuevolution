@@ -19,8 +19,8 @@ stamina = 2000
     probabilities = [0.25,0.5,0.25] # Probability of each value
 
 [creature.sense]
-    init = 35 # Value for the primal creatures
-    variations = [-5,0,+5] # Possible mutation values
+    init = 60 # Value for the primal creatures
+    variations = [-10,0,+10] # Possible mutation values
     probabilities = [0.25,0.5,0.25] # Probability of each value
 
 [simulation]
