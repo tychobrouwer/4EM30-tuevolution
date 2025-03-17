@@ -220,7 +220,7 @@ class App:
             if creature.energy < 0:
                 creature.perish()
                 continue
-            
+
             if creature.is_exploring() and creature.sense > 0:
                 creature.sense_surroundings(self.creatures, self.food)
 
@@ -257,10 +257,6 @@ class App:
 
         # End of day/generation check
         if (self.world.end_of_day() or all((creature.is_home() or creature.has_perished()) for creature in self.creatures)):
-            self.size_hist.clear()
-            self.speed_hist.clear()
-            self.sense_hist.clear()
-
             self.world.next_day()
             self.creatures = [creature for creature in self.creatures if creature.is_home()]
 
@@ -277,6 +273,10 @@ class App:
                         next_generation.append(creature.reproduce())
 
                 self.creatures = next_generation
+
+                self.size_hist.clear()
+                self.speed_hist.clear()
+                self.sense_hist.clear()
 
                 for creature in self.creatures:
                     self.size_hist.add(creature.size_evo_data['init'])
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     scenario_file = pathlib.Path(__file__).resolve().parent.parent / 'scenarios' / f'{scenario}.toml'
     scenario = toml.load(scenario_file)
 
-    if not 'sense' in scenario['creature']:
+    if 'sense' not in scenario['creature']:
         scenario['creature']['sense'] = 0
 
     # Create simulation instance

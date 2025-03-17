@@ -273,7 +273,7 @@ class Creature:
                 # Run distance is the remaining distance such that the predator is at the edge of the sense range
                 run_distance = self.sense - distance
 
-                self.destination = self.position + run_distance * run_direction
+                self.destination = self.position + 1.2 * run_distance * run_direction
                 self.targeting = True
                 return True
 
@@ -285,9 +285,9 @@ class Creature:
             if distance_target > self.sense:
                 self.targeting = False
                 return False
-            
+
             return True
-        
+
         # Target food if hungry and in range
         for f in food:
             distance = numpy.linalg.norm(f.position - self.position)
@@ -298,7 +298,6 @@ class Creature:
                 return True
 
         return False
-
 
     def draw(self, screen):
         """
