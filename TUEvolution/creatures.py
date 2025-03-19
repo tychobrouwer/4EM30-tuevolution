@@ -257,7 +257,7 @@ class Creature:
         predators (list): The list of predators.
         food (list): The list of food.
         """
-        self.energy -= self.sense/5
+        self.energy -= self.sense / 5
 
         # Always run from predators regardless of food or status
         for p in predators:
